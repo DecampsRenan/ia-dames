@@ -1,5 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 
+import {IAService} from '../services/IAService';
+
 export class BoardRouter {
 
   router: Router;
@@ -13,13 +15,30 @@ export class BoardRouter {
   }
 
   init() {
-    this.router.get('/', this.getAll);
+    this.router.route('/')
+      .get(this.getAll);
   }
 
-  getAll(req: Request,
-         res: Response,
-         next: NextFunction) {
+  getAll(req: Request, res: Response) {
+    let iaService = new IAService();
+    // On reçoit ici un tableau de jeu,
+    let score = iaService.score([
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
+      [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
+      [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
+      [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ]
+    ]);
+
+    console.log(score);
+    
     res.send({
+      score,      
       board: [
         [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
         [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
@@ -27,10 +46,10 @@ export class BoardRouter {
         [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
         [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
         [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+        [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
+        [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
+        [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
+        [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ]
       ]
     });
   }

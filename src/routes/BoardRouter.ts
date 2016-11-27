@@ -16,29 +16,25 @@ export class BoardRouter {
 
   init() {
     this.router.route('/')
-      .get(this.getAll);
+        .get(this.getAll);
   }
 
   getAll(req: Request, res: Response) {
-    let iaService = new IAService();
-    // On reçoit ici un tableau de jeu,
-    let score = iaService.score([
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-      [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
-      [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
-      [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
-      [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ]
-    ]);
+    let iaService = new IAService(3);
+    let iaService2 = new IAService(1);
+    console.log(iaService.getNbPiece(iaService.getBoard()));
 
+    // On reçoit ici un tableau de jeu,
+    let score = iaService.score(iaService.getBoard());
     console.log(score);
-    
+
+    iaService.setActions();
+    let graph = iaService.getGraph();
+    console.log("BOARD: ")
+    console.log(iaService.getBoard());
+
     res.send({
-      score,      
+      score,
       board: [
         [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
         [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
@@ -50,7 +46,8 @@ export class BoardRouter {
         [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
         [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
         [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ]
-      ]
+      ],
+      graph: graph
     });
   }
 }

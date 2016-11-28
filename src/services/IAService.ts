@@ -115,7 +115,7 @@ export class IAService {
                     boardNext[i][j] = 0;
                     this.addBoard(boardNext);
                     boardNext = this.copy(board);
-                } else if (next == 1 || next == 2) {
+                } else if (next == this.color-(k*2) || next == this.color-(k*2-1)) {
                     this.attack(boardNext, i, j, direction);
                 }
             }
@@ -128,7 +128,7 @@ export class IAService {
                     boardNext[i + k][j - 1] = piece;
                     boardNext[i][j] = 0;
                     this.addBoard(boardNext);
-                } else if (next2 == 1 || next2 == 2) {
+                } else if (next2 == this.color-(k*2) || next2 == this.color-(k*2-1)) {
                     this.attack(boardNext, i, j, direction);
                 }
             }
@@ -153,7 +153,7 @@ export class IAService {
         if ( next > -1 || next2 > -1) {
 
             // right direction
-            if ((next == this.color-(k*2) || next == this.color-(k*2)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j+2 < 10) ) {
+            if ((next == this.color-(k*2) || next == this.color-(k*2-1)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j+2 < 10) ) {
                 if (boardNext[i + (k*2)][j+2] == 0) {
                     boardNext[i + (k*2)][j + 2] = piece;
                     boardNext[i][j] = 0;
@@ -165,7 +165,7 @@ export class IAService {
             }
 
             // left direction
-            if ((next == this.color-(k*2) || next == this.color-(k*2)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j-2 >= 0)) {
+            if ((next2 == this.color-(k*2) || next2 == this.color-(k*2-1)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j-2 >= 0)) {
                 if (boardNext[i + (k*2)][j - 2] == 0) {
                     boardNext[i + (k*2)][j - 2] = piece;
                     boardNext[i][j] = 0;
@@ -184,8 +184,6 @@ export class IAService {
         this.graph.push({score: this.score(board),board: board});
     }
 
-
-// Calcule le score d'un état passé en paramètre
     /**
      * Calcule le score d'un état passé en paramètre.
      * TODO: ici la matrice B donnant un poid aux cases du board

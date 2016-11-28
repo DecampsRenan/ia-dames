@@ -11,7 +11,7 @@ enum Type {
 export class IAService {
     private color;
     private board: [[number]];
-    private actions = [];
+    private graph = [];
 
     constructor(color) {
         this.color = color;
@@ -30,16 +30,17 @@ export class IAService {
         ];
     }
 
+    // return state of board
     getBoard() : [[number]] {
         return this.board;
     }
 
+    // return number of piece
     getNbPiece(board: [[number]]) : number {
         return board.reduce( (nb, row) => {
             return nb += row.reduce( (value, piece) => {
                 if (this.color == 3) {
                     switch(piece) {
-
                         case Type.BLACK_PAWN:
                             return value + 1;
 
@@ -51,7 +52,6 @@ export class IAService {
                     }
                 } else {
                     switch(piece) {
-
                         case Type.WHITE_PAWN:
                             return value + 1;
 
@@ -66,24 +66,26 @@ export class IAService {
         }, 0);
     }
 
+    // change the actual state board
     setBoard(board:[[number]]) {
-        this.board = this.copy(this.board);
+        this.board = this.copy(board);
     }
 
+    // return list of possible actions
     getGraph() {
-        return this.actions;
+        return this.graph;
     }
 
-    // list of possible actions
-    setActions() {
-        var board = this.copy(this.board);
+    // list of possible actions (board)
+    buildGraph() {
+        let board = this.copy(this.board);
         let i=0;
-        for(var row of board) {
+        for(let row of board) {
             let j=0;
 
-            for (var piece of row) {
+            for (let piece of row) {
                 if (piece == this.color) {
-                    var boardNext = new this.constructor(this.color).getBoard();
+                    let boardNext = this.copy(this.board);
 
                     if (this.color == 3 || this.color == 4) {
                         if(piece == Type.BLACK_PAWN) {
@@ -95,10 +97,10 @@ export class IAService {
                                 if (next == 0) {
                                     boardNext[i + 1][j + 1] = piece;
                                     boardNext[i][j] = 0;
-                                    this.addAction(boardNext);
+                                    this.addBoard(boardNext);
                                     boardNext = this.copy(this.board);
                                 } else if (next == 1 || next == 2) {
-                                    this.chainAction(boardNext, i, j);
+                                    this.attack(boardNext, i, j);
                                 }
                             }
 
@@ -109,10 +111,10 @@ export class IAService {
                                 if (next2 == 0) {
                                     boardNext[i + 1][j - 1] = piece;
                                     boardNext[i][j] = 0;
-                                    this.addAction(boardNext);
+                                    this.addBoard(boardNext);
                                     boardNext = this.copy(this.board);
                                 } else if (next2 == 1 || next2 == 2) {
-                                    this.chainAction(boardNext, i, j);
+                                    this.attack(boardNext, i, j);
                                 }
                             }
                         }
@@ -126,10 +128,10 @@ export class IAService {
                                 if (next == 0) {
                                     boardNext[i - 1][j + 1] = piece;
                                     boardNext[i][j] = 0;
-                                    this.addAction(boardNext);
+                                    this.addBoard(boardNext);
                                     boardNext = this.copy(this.board);
                                 } else if (next == 1 || next == 2) {
-                                    this.chainAction(boardNext, i, j);
+                                    this.attack(boardNext, i, j);
                                 }
                             }
 
@@ -140,10 +142,10 @@ export class IAService {
                                 if (next2 == 0) {
                                     boardNext[i - 1][j - 1] = piece;
                                     boardNext[i][j] = 0;
-                                    this.addAction(boardNext);
+                                    this.addBoard(boardNext);
                                     boardNext = this.copy(this.board);
                                 } else if (next2 == 1 || next2 == 2) {
-                                    this.chainAction(boardNext, i, j);
+                                    this.attack(boardNext, i, j);
                                 }
                             }
                         }
@@ -155,13 +157,15 @@ export class IAService {
         }
     }
 
-    addAction(board: [[number]]) {
+    // method to push a board in graph
+    addBoard(board: [[number]]) {
         console.log(board);
-        this.actions.push({score: this.score(board),board});
+        this.graph.push({score: this.score(board),board: board});
     }
 
-    chainAction(board: [[number]], i:number, j:number) {
-        var boardNext = this.copy(board);
+    // attack method (recursive)
+    attack(board: [[number]], i:number, j:number) {
+        let boardNext = this.copy(board);
 
         if (this.color == 3) {
 
@@ -179,8 +183,8 @@ export class IAService {
                         boardNext[i + 2][j + 2] = piece;
                         boardNext[i][j] = 0;
                         boardNext[i + 1][j + 1] = 0;
-                        this.addAction(boardNext);
-                        this.chainAction(boardNext, i + 2, j + 2);
+                        this.addBoard(boardNext);
+                        this.attack(boardNext, i + 2, j + 2);
                         boardNext = this.copy(board);
                     }
                 }
@@ -191,8 +195,8 @@ export class IAService {
                         boardNext[i + 2][j - 2] = piece;
                         boardNext[i][j] = 0;
                         boardNext[i + 1][j - 1] = 0;
-                        this.addAction(boardNext);
-                        this.chainAction(boardNext, i + 2, j - 2);
+                        this.addBoard(boardNext);
+                        this.attack(boardNext, i + 2, j - 2);
                         boardNext = this.copy(board);
                     }
                 }
@@ -213,8 +217,8 @@ export class IAService {
                         boardNext[i - 2][j + 2] = piece;
                         boardNext[i][j] = 0;
                         boardNext[i - 1][j + 1] = 0;
-                        this.addAction(boardNext);
-                        this.chainAction(boardNext, i - 2, j + 2);
+                        this.addBoard(boardNext);
+                        this.attack(boardNext, i - 2, j + 2);
                         boardNext = this.copy(board);
                     }
                 }
@@ -225,8 +229,8 @@ export class IAService {
                         boardNext[i - 2][j - 2] = piece;
                         boardNext[i][j] = 0;
                         boardNext[i - 1][j - 1] = 0;
-                        this.addAction(boardNext);
-                        this.chainAction(boardNext, i - 2, j - 2);
+                        this.addBoard(boardNext);
+                        this.attack(boardNext, i - 2, j - 2);
                         boardNext = this.copy(board);
                     }
                 }
@@ -234,9 +238,7 @@ export class IAService {
         }
     }
 
-    /**
-     * Calcule le score d'un état passé en paramètre.
-     */
+    // Calcule le score d'un état passé en paramètre
     score(board: [[number]]): number {
         return board.reduce( (score, row) => {
             return score += row.reduce( (value, piece) => {
@@ -257,12 +259,19 @@ export class IAService {
         }, 0);
     }
 
-    buildTree(depth: number) {
-
+    // choice the board in the graph who have the best score
+    takeAdecision() {
+        return this.graph.reduce( (board, row) => {
+            if (board == 0 || row['score'] > board['score']) {
+                board = row;
+            }
+            return board;
+        }, 0);
     }
 
+    // clone value of object without references
     copy(o) {
-        var output, v, key;
+        let output, v, key;
         output = Array.isArray(o) ? [] : {};
         for (key in o) {
             v = o[key];

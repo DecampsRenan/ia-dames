@@ -28,10 +28,13 @@ export class BoardRouter {
     let score = iaService.score(iaService.getBoard());
     console.log(score);
 
-    iaService.setActions();
+    iaService.buildGraph();
     let graph = iaService.getGraph();
     console.log("BOARD: ")
     console.log(iaService.getBoard());
+
+    console.log("Decision :");
+    console.log(iaService.takeAdecision());
 
     res.send({
       score,

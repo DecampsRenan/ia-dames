@@ -20,37 +20,46 @@ export class BoardRouter {
   }
 
   getAll(req: Request, res: Response) {
-    let iaService = new IAService(3);
-    let iaService2 = new IAService(1);
-    console.log(iaService.getNbPiece(iaService.getBoard()));
+    let iaService = new IAService(1, true);
+    let iaService2 = new IAService(3, true);
 
-    // On reçoit ici un tableau de jeu,
-    let score = iaService.score(iaService.getBoard());
-    console.log(score);
+    let board = iaService.getBoard();
 
+    iaService.setBoard(board);
     iaService.buildGraph();
-    let graph = iaService.getGraph();
-    console.log("BOARD: ")
-    console.log(iaService.getBoard());
+    board = iaService.takeAdecision()['board'];
 
-    console.log("Decision :");
-    console.log(iaService.takeAdecision());
+    console.log("WHITE TURN");
+    console.log(board);
+
+    iaService2.setBoard(board);
+    iaService2.buildGraph();
+    board = iaService2.takeAdecision()['board'];
+
+    console.log("BLACK TURN");
+    console.log(board);
+
+    /*while(iaService.getNbPiece(board) > 0 || iaService2.getNbPiece(board) > 0) {
+      iaService.setBoard(board);
+      iaService.buildGraph();
+      board = iaService.takeAdecision()['board'];
+
+      console.log("WHITE TURN");
+      console.log(board);
+
+      iaService2.setBoard(board);
+      iaService2.buildGraph();
+      board = iaService2.takeAdecision()['board'];
+
+      console.log("BLACK TURN");
+      console.log(board);
+    }*/
+
+    let score = iaService.score(board);
 
     res.send({
       score,
-      board: [
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
-        [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ],
-        [ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 ],
-        [ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 ]
-      ],
-      graph: graph
+      board: board
     });
   }
 }

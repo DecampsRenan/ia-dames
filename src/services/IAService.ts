@@ -9,11 +9,13 @@ enum Type {
 }
 
 export class IAService {
+    private debug = false;
     private color;
     private board: [[number]];
     private graph = [];
 
-    constructor(color) {
+    constructor(color, debug) {
+        this.debug = debug;
         this.color = color;
 
         this.board = [
@@ -85,70 +87,10 @@ export class IAService {
 
             for (let piece of row) {
                 if (piece == this.color) {
-                    let boardNext = this.copy(this.board);
-
-                    if (this.color == 3 || this.color == 4) {
-                        if(piece == Type.BLACK_PAWN) {
-
-                            if (i + 1 < 10 && j + 1 < 10) {
-
-                                // right direction
-                                let next = boardNext[i + 1][j + 1];
-                                if (next == 0) {
-                                    boardNext[i + 1][j + 1] = piece;
-                                    boardNext[i][j] = 0;
-                                    this.addBoard(boardNext);
-                                    boardNext = this.copy(this.board);
-                                } else if (next == 1 || next == 2) {
-                                    this.attack(boardNext, i, j);
-                                }
-                            }
-
-                            if (i + 1 < 10 && j - 1 >= 0) {
-
-                                // left direction
-                                let next2 = boardNext[i + 1][j - 1];
-                                if (next2 == 0) {
-                                    boardNext[i + 1][j - 1] = piece;
-                                    boardNext[i][j] = 0;
-                                    this.addBoard(boardNext);
-                                    boardNext = this.copy(this.board);
-                                } else if (next2 == 1 || next2 == 2) {
-                                    this.attack(boardNext, i, j);
-                                }
-                            }
-                        }
+                    if (this.color == 3) {
+                        if (i + 1 < 10 && (j + 1 < 10 || j-1 >= 0)) this.movePiece(board, piece, i, j, 'top');
                     } else {
-                        if(piece == Type.WHITE_PAWN) {
-
-                            if (i - 1 >= 0 && j + 1 < 10) {
-
-                                // right direction
-                                let next = boardNext[i - 1][j + 1];
-                                if (next == 0) {
-                                    boardNext[i - 1][j + 1] = piece;
-                                    boardNext[i][j] = 0;
-                                    this.addBoard(boardNext);
-                                    boardNext = this.copy(this.board);
-                                } else if (next == 1 || next == 2) {
-                                    this.attack(boardNext, i, j);
-                                }
-                            }
-
-                            if (i - 1 >= 0 && j - 1 >= 0) {
-
-                                // left direction
-                                let next2 = boardNext[i - 1][j - 1];
-                                if (next2 == 0) {
-                                    boardNext[i - 1][j - 1] = piece;
-                                    boardNext[i][j] = 0;
-                                    this.addBoard(boardNext);
-                                    boardNext = this.copy(this.board);
-                                } else if (next2 == 1 || next2 == 2) {
-                                    this.attack(boardNext, i, j);
-                                }
-                            }
-                        }
+                        if (i - 1 >= 0 && (j + 1 < 10 || j-1 >= 0)) this.movePiece(board, piece, i, j, 'bottom');
                     }
                 }
                 j++;
@@ -157,88 +99,93 @@ export class IAService {
         }
     }
 
-    // method to push a board in graph
-    addBoard(board: [[number]]) {
-        console.log(board);
-        this.graph.push({score: this.score(board),board: board});
-    }
-
-    // attack method (recursive)
-    attack(board: [[number]], i:number, j:number) {
+    movePiece(board, piece, i , j, direction) {
         let boardNext = this.copy(board);
 
-        if (this.color == 3) {
+        if(piece == this.color) {
+            let k = -1;
+            if(direction == 'top') k = 1;
 
-            let next = -1;
-            if (i+1 < 10 && j+1 < 10) next = boardNext[i+1][j+1];
-            let next2 = -1;
-            if (i+1 < 10 && j-1 >= 0) next2 = boardNext[i+1][j-1];
-
-            let piece = boardNext[i][j];
-            if ( next > -1 || next2 > -1) {
+            if ((i + k < 10 || i + k >= 0) && j + 1 < 10) {
 
                 // right direction
-                if ((next == 1 || next == 2) && (i+2 < 10 && j+2 < 10) ) {
-                    if (boardNext[i+2][j+2] == 0) {
-                        boardNext[i + 2][j + 2] = piece;
-                        boardNext[i][j] = 0;
-                        boardNext[i + 1][j + 1] = 0;
-                        this.addBoard(boardNext);
-                        this.attack(boardNext, i + 2, j + 2);
-                        boardNext = this.copy(board);
-                    }
-                }
-
-                // left direction
-                if ((next2 == 1 || next2 == 2) && (i+2 < 10 && j-2 >= 0)) {
-                    if (boardNext[i+2][j-2] == 0) {
-                        boardNext[i + 2][j - 2] = piece;
-                        boardNext[i][j] = 0;
-                        boardNext[i + 1][j - 1] = 0;
-                        this.addBoard(boardNext);
-                        this.attack(boardNext, i + 2, j - 2);
-                        boardNext = this.copy(board);
-                    }
+                let next = boardNext[i + k][j + 1];
+                if (next == 0) {
+                    boardNext[i + k][j + 1] = piece;
+                    boardNext[i][j] = 0;
+                    this.addBoard(boardNext);
+                    boardNext = this.copy(board);
+                } else if (next == 1 || next == 2) {
+                    this.attack(boardNext, i, j, direction);
                 }
             }
-        } else {
 
-            let next = -1;
-            if (i-1 < 10 && j+1 < 10) next = boardNext[i-1][j+1];
-            let next2 = -1;
-            if (i-1 < 10 && j-1 >= 0) next2 = boardNext[i-1][j-1];
-
-            let piece = boardNext[i][j];
-            if ( next > -1 || next2 > -1) {
-
-                // right direction
-                if ((next == 1 || next == 2) && (i-2 < 10 && j+2 < 10) ) {
-                    if (boardNext[i-2][j+2] == 0) {
-                        boardNext[i - 2][j + 2] = piece;
-                        boardNext[i][j] = 0;
-                        boardNext[i - 1][j + 1] = 0;
-                        this.addBoard(boardNext);
-                        this.attack(boardNext, i - 2, j + 2);
-                        boardNext = this.copy(board);
-                    }
-                }
+            if ((i + k < 10 || i + k >= 0) && j - 1 >= 0) {
 
                 // left direction
-                if ((next2 == 1 || next2 == 2) && (i-2 < 10 && j-2 >= 0)) {
-                    if (boardNext[i-2][j-2] == 0) {
-                        boardNext[i - 2][j - 2] = piece;
-                        boardNext[i][j] = 0;
-                        boardNext[i - 1][j - 1] = 0;
-                        this.addBoard(boardNext);
-                        this.attack(boardNext, i - 2, j - 2);
-                        boardNext = this.copy(board);
-                    }
+                let next2 = boardNext[i + k][j - 1];
+                if (next2 == 0) {
+                    boardNext[i + k][j - 1] = piece;
+                    boardNext[i][j] = 0;
+                    this.addBoard(boardNext);
+                } else if (next2 == 1 || next2 == 2) {
+                    this.attack(boardNext, i, j, direction);
                 }
             }
         }
     }
 
-    // Calcule le score d'un état passé en paramètre
+
+    // attack method (recursive)
+    attack(board: [[number]], i:number, j:number, direction) {
+        let boardNext = this.copy(board);
+
+        let k = -1;
+        if (direction == 'top') k = 1;
+
+
+        let next = -1;
+        if ((i+k < 10 || i-k >= 0) && j+1 < 10) next = boardNext[i+k][j+1];
+        let next2 = -1;
+        if ((i+k < 10 || i-k >= 0) && j-1 >= 0) next2 = boardNext[i+k][j-1];
+
+        let piece = boardNext[i][j];
+        if ( next > -1 || next2 > -1) {
+
+            // right direction
+            if ((next == this.color-(k*2) || next == this.color-(k*2)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j+2 < 10) ) {
+                if (boardNext[i + (k*2)][j+2] == 0) {
+                    boardNext[i + (k*2)][j + 2] = piece;
+                    boardNext[i][j] = 0;
+                    boardNext[i + k][j + 1] = 0;
+                    this.addBoard(boardNext);
+                    this.attack(boardNext, i + (k*2), j + 2, direction);
+                    boardNext = this.copy(board);
+                }
+            }
+
+            // left direction
+            if ((next == this.color-(k*2) || next == this.color-(k*2)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j-2 >= 0)) {
+                if (boardNext[i + (k*2)][j - 2] == 0) {
+                    boardNext[i + (k*2)][j - 2] = piece;
+                    boardNext[i][j] = 0;
+                    boardNext[i + k][j - 1] = 0;
+                    this.addBoard(boardNext);
+                    this.attack(boardNext, i + (k*2), j - 2, direction);
+                    boardNext = this.copy(board);
+                }
+            }
+        }
+    }
+
+    // method to push a board in graph
+    addBoard(board: [[number]]) {
+        if (this.debug) console.log(board);
+        this.graph.push({score: this.score(board),board: board});
+    }
+
+
+// Calcule le score d'un état passé en paramètre
     /**
      * Calcule le score d'un état passé en paramètre.
      * TODO: ici la matrice B donnant un poid aux cases du board
@@ -265,7 +212,7 @@ export class IAService {
         }, 0);
     }
 
-    // choice the board in the graph who have the best score
+// choice the board in the graph who have the best score
     takeAdecision() {
         return this.graph.reduce( (board, row) => {
             if (board == 0 || row['score'] > board['score']) {
@@ -275,7 +222,7 @@ export class IAService {
         }, 0);
     }
 
-    // clone value of object without references
+// clone value of object without references
     copy(o) {
         let output, v, key;
         output = Array.isArray(o) ? [] : {};

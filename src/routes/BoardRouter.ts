@@ -32,7 +32,7 @@ export class BoardRouter {
     console.log("WHITE TURN");
     console.log(board);
 
-    iaService2.setBoard(board);
+    iaService.setBoard(board);
     iaService2.buildGraph();
     board = iaService2.takeAdecision()['board'];
 

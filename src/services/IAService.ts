@@ -99,10 +99,12 @@ export class IAService {
         }
     }
 
-    movePiece(board, piece, i , j, direction) {
+    // listing of all possible movements of this piece
+    movePiece(board: [[number]], piece:number, i:number, j:number, direction:string) {
         let boardNext = this.copy(board);
 
         if(piece == this.color) {
+            // PAWN
             let k = -1;
             if(direction == 'top') k = 1;
 
@@ -111,6 +113,7 @@ export class IAService {
                 // right direction
                 let next = boardNext[i + k][j + 1];
                 if (next == 0) {
+                    if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
                     boardNext[i + k][j + 1] = piece;
                     boardNext[i][j] = 0;
                     this.addBoard(boardNext);
@@ -125,6 +128,7 @@ export class IAService {
                 // left direction
                 let next2 = boardNext[i + k][j - 1];
                 if (next2 == 0) {
+                    if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
                     boardNext[i + k][j - 1] = piece;
                     boardNext[i][j] = 0;
                     this.addBoard(boardNext);
@@ -132,12 +136,14 @@ export class IAService {
                     this.attack(boardNext, i, j, direction);
                 }
             }
+        } else if (piece == this.color+1) {
+            // QUEEN
+            
         }
     }
 
-
-    // attack method (recursive)
-    attack(board: [[number]], i:number, j:number, direction) {
+    // attack method (recursive) with PAWN
+    attack(board: [[number]], i:number, j:number, direction:string) : boolean {
         let boardNext = this.copy(board);
 
         let k = -1;
@@ -155,27 +161,36 @@ export class IAService {
             // right direction
             if ((next == this.color-(k*2) || next == this.color-(k*2-1)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j+2 < 10) ) {
                 if (boardNext[i + (k*2)][j+2] == 0) {
+                    if ((i+(k*2) == 0 && piece == 1) || (i+(k*2) == 9 && piece == 3)) piece++; // PAWN => QUEEN
                     boardNext[i + (k*2)][j + 2] = piece;
                     boardNext[i][j] = 0;
                     boardNext[i + k][j + 1] = 0;
-                    this.addBoard(boardNext);
-                    this.attack(boardNext, i + (k*2), j + 2, direction);
+
+                    if(!this.attack(boardNext, i + (k*2), j + 2, direction)) {
+                        this.addBoard(boardNext);
+                    }
                     boardNext = this.copy(board);
+                    return true;
                 }
             }
 
             // left direction
             if ((next2 == this.color-(k*2) || next2 == this.color-(k*2-1)) && ((i+(k*2) < 10 || i+(k*2) >= 0) && j-2 >= 0)) {
                 if (boardNext[i + (k*2)][j - 2] == 0) {
+                    if ((i+(k*2) == 0 && piece == 1) || (i+(k*2) == 9 && piece == 3)) piece++; // PAWN => QUEEN
                     boardNext[i + (k*2)][j - 2] = piece;
                     boardNext[i][j] = 0;
                     boardNext[i + k][j - 1] = 0;
-                    this.addBoard(boardNext);
-                    this.attack(boardNext, i + (k*2), j - 2, direction);
-                    boardNext = this.copy(board);
+
+                    if(!this.attack(boardNext, i + (k*2), j - 2, direction)) {
+                        this.addBoard(boardNext);
+                    }
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     // method to push a board in graph

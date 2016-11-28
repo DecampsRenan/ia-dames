@@ -1,5 +1,5 @@
+import {isUndefined} from 'util';
 
-import {isUndefined} from "util";
 enum Type {
     EMPTY = 0,
     WHITE_PAWN = 1,
@@ -239,7 +239,13 @@ export class IAService {
     }
 
     // Calcule le score d'un état passé en paramètre
+    /**
+     * Calcule le score d'un état passé en paramètre.
+     * TODO: ici la matrice B donnant un poid aux cases du board
+     * n'est pas prise en compte. Il faut l'implémenter.
+     */
     score(board: [[number]]): number {
+        let whiteScore = 0, blackScore = 0;
         return board.reduce( (score, row) => {
             return score += row.reduce( (value, piece) => {
                 switch(piece) {

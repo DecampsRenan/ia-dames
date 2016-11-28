@@ -1,5 +1,14 @@
+/**
+ * 
+ * 
+ * 
+ * TODO: essayer la méthode Array.prototype.slice(0) pour
+ * la création d'un nouvel Array
+ * 
+ */
 
-import {isUndefined} from "util";
+import {isUndefined} from 'util';
+
 enum Type {
     EMPTY = 0,
     WHITE_PAWN = 1,
@@ -12,9 +21,23 @@ export class IAService {
     private color;
     private board: [[number]];
     private actions = [];
+    private weightedBoard: [[number]];
 
     constructor(color) {
         this.color = color;
+
+        this.weightedBoard = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        ]
 
         this.board = [
             [ 0, 3, 0, 3, 0, 3, 0, 3, 0, 3 ],
@@ -76,14 +99,14 @@ export class IAService {
 
     // list of possible actions
     setActions() {
-        var board = this.copy(this.board);
+        let board = this.copy(this.board);
         let i=0;
         for(var row of board) {
             let j=0;
 
-            for (var piece of row) {
+            for (let piece of row) {
                 if (piece == this.color) {
-                    var boardNext = new this.constructor(this.color).getBoard();
+                    let boardNext = new this.constructor(this.color).getBoard();
 
                     if (this.color == 3 || this.color == 4) {
                         if(piece == Type.BLACK_PAWN) {
@@ -161,7 +184,7 @@ export class IAService {
     }
 
     chainAction(board: [[number]], i:number, j:number) {
-        var boardNext = this.copy(board);
+        let boardNext = this.copy(board);
 
         if (this.color == 3) {
 
@@ -236,8 +259,11 @@ export class IAService {
 
     /**
      * Calcule le score d'un état passé en paramètre.
+     * TODO: ici la matrice B donnant un poid aux cases du board
+     * n'est pas prise en compte. Il faut l'implémenter.
      */
     score(board: [[number]]): number {
+        let whiteScore = 0, blackScore = 0;
         return board.reduce( (score, row) => {
             return score += row.reduce( (value, piece) => {
                 switch(piece) {
@@ -258,7 +284,7 @@ export class IAService {
     }
 
     buildTree(depth: number) {
-
+        
     }
 
     copy(o) {

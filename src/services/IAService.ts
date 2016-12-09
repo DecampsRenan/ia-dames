@@ -107,44 +107,205 @@ export class IAService {
             // PAWN
             let k = -1;
             if(direction == 'top') k = 1;
+            let attack:boolean=false;
 
+            let next = -1;
             if ((i + k < 10 || i + k >= 0) && j + 1 < 10) {
-
-                // right direction
-                let next = boardNext[i + k][j + 1];
-                if (next == 0) {
-                    if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
-                    boardNext[i + k][j + 1] = piece;
-                    boardNext[i][j] = 0;
-                    this.addBoard(boardNext);
-                    boardNext = this.copy(board);
-                } else if (next == this.color-(k*2) || next == this.color-(k*2-1)) {
-                    this.attack(boardNext, i, j, direction);
-                }
+                next = boardNext[i + k][j + 1];
             }
-
+            let next2 = -1;
             if ((i + k < 10 || i + k >= 0) && j - 1 >= 0) {
-
-                // left direction
                 let next2 = boardNext[i + k][j - 1];
-                if (next2 == 0) {
-                    if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
-                    boardNext[i + k][j - 1] = piece;
-                    boardNext[i][j] = 0;
-                    this.addBoard(boardNext);
-                } else if (next2 == this.color-(k*2) || next2 == this.color-(k*2-1)) {
-                    this.attack(boardNext, i, j, direction);
-                }
             }
-        } else if (piece == this.color+1) {
+
+            // right attack
+            if (next == this.color-(k*2) || next == this.color-(k*2-1)) {
+                this.attack(boardNext, i, j, direction);
+                attack=true;
+            }
+            // left attack
+            if (next2 == this.color-(k*2) || next2 == this.color-(k*2-1)) {
+                this.attack(boardNext, i, j, direction);
+                attack=true;
+            }
+
+            // right direction
+            if (next == 0 && !attack) {
+                if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
+                boardNext[i + k][j + 1] = piece;
+                boardNext[i][j] = 0;
+                this.addBoard(boardNext);
+                boardNext = this.copy(board);
+            }
+
+            // left direction
+            if (next2 == 0 && !attack) {
+                if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
+                boardNext[i + k][j - 1] = piece;
+                boardNext[i][j] = 0;
+                this.addBoard(boardNext);
+            }
+
+        } else if (piece == 4 || piece == 2) {
             // QUEEN
-            
+            let nextRT = boardNext[i + 1][j + 1]; //right-top
+            let nextLT = boardNext[i + 1][j - 1];//left-top
+            let nextRB = boardNext[i - 1][j + 1];//right-bottom
+            let nextLB = boardNext[i - 1][j - 1];//left-bottom
+
+            if (   ((this.color == 3 && (nextRT == 1 || nextRT == 2)) || (this.color == 1 && (nextRT == 3 || nextRT == 4)))
+                || ((this.color == 3 && (nextLT == 1 || nextLT == 2)) || (this.color == 1 && (nextLT == 3 || nextLT == 4)))
+                || ((this.color == 3 && (nextRB == 1 || nextRB == 2)) || (this.color == 1 && (nextRB == 3 || nextRB == 4)))
+                || ((this.color == 3 && (nextLB == 1 || nextLB == 2)) || (this.color == 1 && (nextLB == 3 || nextLB == 4))) ) {
+                this.attackQueen(boardNext, i, j);
+            } else {
+                this.queenMove(boardNext, i, j, null);
+            }
         }
+    }
+
+    queenMove(board: [[number]], i:number, j:number, direction) {
+        let boardNext = this.copy(board);
+        let piece = boardNext[i][j];
+
+
+        //right-top
+        if (i + 1 < 10 && j + 1 < 10 && (direction == "RT" || direction == null)) {
+
+            let next = boardNext[i + 1][j + 1];
+            if (next == 0) {
+                boardNext[i + 1][j + 1] = piece;
+                boardNext[i][j] = 0;
+                this.addBoard(boardNext);
+                this.queenMove(boardNext, i+1, j+1, "RT");
+                boardNext = this.copy(board);
+            }
+        }
+
+        //left-top
+        if (i + 1 < 10 && j - 1 >= 0 && (direction == "LT" || direction == null)) {
+
+            let next = boardNext[i + 1][j - 1];
+            if (next == 0) {
+                boardNext[i + 1][j - 1] = piece;
+                boardNext[i][j] = 0;
+                this.addBoard(boardNext);
+                this.queenMove(boardNext, i+1, j-1, "LT");
+                boardNext = this.copy(board);
+            }
+        }
+
+        //right-bottom
+        if (i - 1 >= 0 && j + 1 < 10 && (direction == "RB" || direction == null)) {
+
+            let next = boardNext[i - 1][j + 1];
+            if (next == 0) {
+                boardNext[i - 1][j + 1] = piece;
+                boardNext[i][j] = 0;
+                this.addBoard(boardNext);
+                this.queenMove(boardNext, i-1, j+1, "RB");
+                boardNext = this.copy(board);
+            }
+        }
+
+        //left-bottom
+        if (i - 1 >= 0 && j - 1 >= 0 && (direction == "LB" || direction == null)) {
+
+            let next = boardNext[i - 1][j - 1];
+            if (next == 0) {
+                boardNext[i - 1][j - 1] = piece;
+                boardNext[i][j] = 0;
+                this.addBoard(boardNext);
+                this.queenMove(boardNext, i-1, j-1, "LB");
+            }
+        }
+    }
+
+    attackQueen(board: [[number]], i:number, j:number) : boolean {
+        let boardNext = this.copy(board);
+        let piece = boardNext[i][j];
+        let whenAttack = false;
+
+        //right-top
+        if (i + 2 < 10 && j + 2 < 10) {
+
+            let next = boardNext[i + 1][j + 1];
+            if (((this.color == 3 && (next == 1 || next == 2)) || (this.color == 1 && (next == 3 || next == 4)))
+                && boardNext[i + 2][j + 2] == 0) {
+
+                boardNext[i + 2][j + 2] = piece;
+                boardNext[i+1][j+1] = 0;
+                boardNext[i][j] = 0;
+                if(!this.attackQueen(boardNext, i+2, j+2)) {
+                    this.addBoard(boardNext);
+                }
+                boardNext = this.copy(board);
+                whenAttack = true;
+            }
+        }
+
+        //left-top
+        if (i + 2 < 10 && j - 2 >= 0) {
+
+            let next = boardNext[i + 1][j - 1];
+            if (((this.color == 3 && (next == 1 || next == 2)) || (this.color == 1 && (next == 3 || next == 4)))
+                && boardNext[i + 2][j - 2] == 0) {
+
+                boardNext[i + 2][j - 2] = piece;
+                boardNext[i+1][j-1] = 0;
+                boardNext[i][j] = 0;
+                if(!this.attackQueen(boardNext, i+2, j-2)) {
+                    this.addBoard(boardNext);
+                }
+                boardNext = this.copy(board);
+                whenAttack = true;
+            }
+        }
+
+
+        //right-bottom
+        if (i - 2 < 10 && j + 2 >= 0) {
+
+            let next = boardNext[i - 1][j + 1];
+            if (((this.color == 3 && (next == 1 || next == 2)) || (this.color == 1 && (next == 3 || next == 4)))
+                && boardNext[i - 2][j + 2] == 0) {
+
+                boardNext[i - 2][j + 2] = piece;
+                boardNext[i-1][j+1] = 0;
+                boardNext[i][j] = 0;
+                if(!this.attackQueen(boardNext, i-2, j+2)) {
+                    this.addBoard(boardNext);
+                }
+                boardNext = this.copy(board);
+                whenAttack = true;
+            }
+        }
+
+        //left-bottom
+        if (i - 2 < 10 && j - 2 >= 0) {
+
+            let next = boardNext[i - 1][j - 1];
+            if (((this.color == 3 && (next == 1 || next == 2)) || (this.color == 1 && (next == 3 || next == 4)))
+                && boardNext[i - 2][j - 2] == 0) {
+
+                boardNext[i - 2][j - 2] = piece;
+                boardNext[i-1][j-1] = 0;
+                boardNext[i][j] = 0;
+                if(!this.attackQueen(boardNext, i-2, j-2)) {
+                    this.addBoard(boardNext);
+                }
+                whenAttack = true;
+            }
+        }
+
+        if (whenAttack) return true;
+        return false;
     }
 
     // attack method (recursive) with PAWN
     attack(board: [[number]], i:number, j:number, direction:string) : boolean {
         let boardNext = this.copy(board);
+        let whenAttack = false;
 
         let k = -1;
         if (direction == 'top') k = 1;
@@ -170,7 +331,7 @@ export class IAService {
                         this.addBoard(boardNext);
                     }
                     boardNext = this.copy(board);
-                    return true;
+                    whenAttack = true;
                 }
             }
 
@@ -185,9 +346,11 @@ export class IAService {
                     if(!this.attack(boardNext, i + (k*2), j - 2, direction)) {
                         this.addBoard(boardNext);
                     }
-                    return true;
+                    whenAttack = true;
                 }
             }
+
+            if(whenAttack) return true;
         }
 
         return false;

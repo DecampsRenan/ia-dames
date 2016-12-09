@@ -25,21 +25,7 @@ export class BoardRouter {
 
     let board = iaService.getBoard();
 
-    iaService.setBoard(board);
-    iaService.buildGraph();
-    board = iaService.takeAdecision()['board'];
-
-    console.log("WHITE TURN");
-    console.log(board);
-
-    iaService.setBoard(board);
-    iaService2.buildGraph();
-    board = iaService2.takeAdecision()['board'];
-
-    console.log("BLACK TURN");
-    console.log(board);
-
-    /*while(iaService.getNbPiece(board) > 0 || iaService2.getNbPiece(board) > 0) {
+    while(iaService.getNbPiece(board) > 0 || iaService2.getNbPiece(board) > 0) {
       iaService.setBoard(board);
       iaService.buildGraph();
       board = iaService.takeAdecision()['board'];
@@ -53,7 +39,7 @@ export class BoardRouter {
 
       console.log("BLACK TURN");
       console.log(board);
-    }*/
+    }
 
     let score = iaService.score(board);
 

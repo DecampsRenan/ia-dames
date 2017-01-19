@@ -115,23 +115,26 @@ export class IAService {
             }
             let next2 = -1;
             if ((i + k < 10 || i + k >= 0) && j - 1 >= 0) {
-                let next2 = boardNext[i + k][j - 1];
+                next2 = boardNext[i + k][j - 1];
             }
 
             // right attack
             if (next == this.color-(k*2) || next == this.color-(k*2-1)) {
                 this.attack(boardNext, i, j, direction);
+                // score += 1 pour chaque pion pris
                 attack=true;
             }
             // left attack
             if (next2 == this.color-(k*2) || next2 == this.color-(k*2-1)) {
                 this.attack(boardNext, i, j, direction);
+                // score += 1 pour chaque pion pris
                 attack=true;
             }
 
             // right direction
             if (next == 0 && !attack) {
                 if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
+                // score += 1 pour la promotion du pion en reine
                 boardNext[i + k][j + 1] = piece;
                 boardNext[i][j] = 0;
                 this.addBoard(boardNext);
@@ -141,6 +144,7 @@ export class IAService {
             // left direction
             if (next2 == 0 && !attack) {
                 if ((i+k == 0 && piece == 1) || (i+k == 9 && piece == 3)) piece++; // PAWN => QUEEN
+                // score += 1 pour la promotion du pion en reine
                 boardNext[i + k][j - 1] = piece;
                 boardNext[i][j] = 0;
                 this.addBoard(boardNext);
@@ -149,17 +153,19 @@ export class IAService {
         } else if (piece == 4 || piece == 2) {
             // QUEEN
             let nextRT = boardNext[i + 1][j + 1]; //right-top
-            let nextLT = boardNext[i + 1][j - 1];//left-top
-            let nextRB = boardNext[i - 1][j + 1];//right-bottom
-            let nextLB = boardNext[i - 1][j - 1];//left-bottom
+            let nextLT = boardNext[i + 1][j - 1]; //left-top
+            let nextRB = boardNext[i - 1][j + 1]; //right-bottom
+            let nextLB = boardNext[i - 1][j - 1]; //left-bottom
 
             if (   ((this.color == 3 && (nextRT == 1 || nextRT == 2)) || (this.color == 1 && (nextRT == 3 || nextRT == 4)))
                 || ((this.color == 3 && (nextLT == 1 || nextLT == 2)) || (this.color == 1 && (nextLT == 3 || nextLT == 4)))
                 || ((this.color == 3 && (nextRB == 1 || nextRB == 2)) || (this.color == 1 && (nextRB == 3 || nextRB == 4)))
                 || ((this.color == 3 && (nextLB == 1 || nextLB == 2)) || (this.color == 1 && (nextLB == 3 || nextLB == 4))) ) {
                 this.attackQueen(boardNext, i, j);
+                // ici on incrémente le score du nombre de pions qu'elle peut prendre
             } else {
                 this.queenMove(boardNext, i, j, null);
+                // ici on incrémente de  +2 (mouvement de la reine certainement plus intéressant que celui des pions)
             }
         }
     }
@@ -167,7 +173,6 @@ export class IAService {
     queenMove(board: [[number]], i:number, j:number, direction) {
         let boardNext = this.copy(board);
         let piece = boardNext[i][j];
-
 
         //right-top
         if (i + 1 < 10 && j + 1 < 10 && (direction == "RT" || direction == null)) {
@@ -369,23 +374,88 @@ export class IAService {
      */
     score(board: [[number]]): number {
         let whiteScore = 0, blackScore = 0;
-        return board.reduce( (score, row) => {
-            return score += row.reduce( (value, piece) => {
-                switch(piece) {
+        return board.reduce( (score, row, i) => {
+            return score += row.reduce( (value, piece, j) => {
+                if (piece == Type.WHITE_PAWN)  value += 1;
+                if (piece == Type.WHITE_QUEEN) value += 2;
 
-                    case Type.WHITE_PAWN:
-                    case Type.BLACK_PAWN:
-                        return value + 1;
+                if (!this._isTakable(piece, board, i, j)) value += 1;
+                value += this._canTake(piece, board, i, j);
+                if (this._canBecomeQueen(piece, board, i, j)) value += 1;
 
-                    case Type.WHITE_QUEEN:
-                    case Type.BLACK_QUEEN:
-                        return value + 2;
-
-                    default:
-                        return value + 0;
-                }
+                return value;
             }, 0);
         }, 0);
+    }
+
+    _canBecomeQueen(piece: number, board: [[number]], i: number, j: number): boolean {
+        if (piece == Type.BLACK_PAWN) {
+            if (i == 1 && (board[i-1][j-1] == Type.EMPTY || board[i-1][j+1] == Type.EMPTY)) return true;
+        } else {
+            if (i == 8 && (board[i+1][j-1] == Type.EMPTY || board[i+1][j+1] == Type.EMPTY)) return true;
+        }
+        return false;
+    }
+
+    _canTake(piece: number, board: [[number]], i: number, j: number): number {
+        let nbTakable: number = 0;
+        return this._findBR(piece, board, i, j) + this._findTR(piece, board, i, j);
+    }
+    _isTakable(piece: number, board: [[number]], i: number, j: number): boolean {
+        // A partir du pion, on regarde si un autre pion peu le prendre
+        // en diagonale
+        return (this._findBR(piece, board, i, j) == 1 ||
+                this._findTR(piece, board, i, j) == 1 );
+    }
+    _findTR(piece: number, board: [[number]], i: number, j: number): number {
+        let firstLoop = true;
+        let Ylength = board.length;
+        let Xlength = board[0].length;
+        let maxLength = Math.max(Xlength, Ylength);
+        for (let k = i; k <= 2 * (maxLength - 1); ++k) {
+            for (let y = Ylength - 1; y >= j; --y) {
+                let x = k - (Ylength - y);
+                if (x >= 0 && x < Xlength) {
+                    if (piece == Type.WHITE_PAWN || piece == Type.WHITE_QUEEN) {
+                        if (board[y][x] == Type.BLACK_PAWN && firstLoop ) {
+                            firstLoop = false;
+                            return 1;
+                        }
+                    } else {
+                        if (board[y][x] == Type.WHITE_PAWN && firstLoop ) {
+                            firstLoop = false;
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+    _findBR(piece: number, board: [[number]], i: number, j: number): number {
+        let firstLoop = true;
+        let Ylength = board.length;
+        let Xlength = board[0].length;
+        let maxLength = Math.max(Xlength, Ylength);
+        for (let k = i; k <= 2 * (maxLength - 1); ++k) {
+            for (let y = Ylength - 1; y >= j; --y) {
+                let x = k - y;
+                if (x >= 0 && x < Xlength) {
+                    if (piece == Type.WHITE_PAWN || piece == Type.WHITE_QUEEN) {
+                        if (board[y][x] == Type.BLACK_PAWN && firstLoop ) {
+                            firstLoop = false;
+                            return 1;
+                        }
+                    } else {
+                        if (board[y][x] == Type.WHITE_PAWN && firstLoop ) {
+                            firstLoop = false;
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
     }
 
 // choice the board in the graph who have the best score

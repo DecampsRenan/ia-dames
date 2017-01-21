@@ -9,6 +9,7 @@ enum Type {
 }
 
 export class IAService {
+    private INFINITY = Number.MAX_SAFE_INTEGER;
     private debug = false;
     private color;
     private board: [[number]];
@@ -477,5 +478,28 @@ export class IAService {
             output[key] = (typeof v === "object") ? this.copy(v) : v;
         }
         return output;
+    }
+
+    perform_algo(noeud, alpha, beta) {
+        /* A < B */
+        if (noeud.leaf == null) {
+            return noeud.value;
+        } else {
+            let best = { value :  this.INFINITY * -1};
+            for (let child of noeud.leaf) {
+                let val = this.perform_algo(child,-beta,-alpha);
+                val.value = val.value  * -1;
+                if (val.value > best.value) {
+                    best = val;
+                    if (best.value > alpha.value) {
+                        alpha = best;
+                        if (alpha.value >= beta.value) {
+                            return best;
+                        }
+                    }
+                }
+            }
+            return best;
+        }
     }
 }

@@ -16,10 +16,12 @@ export class IAService {
     private graph = [];
     private cluster;
     private attackRequired:boolean = false;
+    private depth = 0; // profondeur
 
-    constructor(color, debug) {
+    constructor(color, depth, debug) {
         this.debug = debug;
         this.color = color;
+        this.depth = depth;
 
         this.board = [
             [ 0, 3, 0, 3, 0, 3, 0, 3, 0, 3 ],
@@ -389,7 +391,26 @@ export class IAService {
     // method to push a board in graph
     addBoard(board: [[number]]) {
         if (this.debug) console.log(board);
-        this.graph.push({score: this.score(board),board: board});
+
+        /**
+         * Profondeur du graphe : nbDepth
+         * TODO : BUG lors de graphe avec une profondeur > 1
+          */
+        let nbDepth = 0;
+        if (this.depth < nbDepth) {
+            let iaService = null;
+            if (this.color == 1) {
+                iaService = new IAService(3, ++this.depth, false);
+            } else {
+                iaService = new IAService(1, ++this.depth, false);
+            }
+
+            iaService.setBoard(board);
+            iaService.buildGraph();
+
+            this.graph.push({score: this.score(board), board: board, leaf: iaService.getGraph()});
+        }
+        this.graph.push({score: this.score(board), board: board, leaf: null});
     }
 
     /**
@@ -486,15 +507,17 @@ export class IAService {
 // choice the board in the graph who have the best score
     takeAdecision() {
         if (isUndefined(this.graph[0])) {
-            this.graph.push({score: 0,board: this.board});
+            return this.board;
         }
+        return this.performAlgo()['board'];
 
-        return this.graph.reduce( (board, row) => {
-            if (board == 0 || row['score'] > board['score']) {
-                board = row;
-            }
-            return board;
-        }, 0);
+        // méthode classique avec le meilleur score (MAX)
+        /*return this.graph.reduce( (board, row) => {
+         if (board == 0 || row['score'] > board['score']) {
+         board = row;
+         }
+         return board;
+         }, 0);*/
     }
 
 // clone value of object without references

@@ -14,6 +14,7 @@ export class IAService {
     private color;
     private board: [[number]];
     private graph = [];
+    private cluster;
 
     constructor(color, debug) {
         this.debug = debug;
@@ -480,20 +481,28 @@ export class IAService {
         return output;
     }
 
-    perform_algo(noeud, alpha, beta) {
+    _negamaxAplhaBeta(noeud, alpha, beta, father) {
         /* A < B */
         if (noeud.leaf == null) {
-            return noeud.value;
+            if (father != null) {
+                father.value = noeud.value;
+                return father;
+            }
+            return noeud;
         } else {
             let best = { value :  this.INFINITY * -1};
             for (let child of noeud.leaf) {
-                let val = this.perform_algo(child,-beta,-alpha);
+                let val = this._negamaxAplhaBeta(child,-beta,-alpha, noeud);
                 val.value = val.value  * -1;
                 if (val.value > best.value) {
                     best = val;
                     if (best.value > alpha.value) {
                         alpha = best;
                         if (alpha.value >= beta.value) {
+                            if (father != null) {
+                                father.value = best.value;
+                                return father;
+                            }
                             return best;
                         }
                     }
@@ -501,5 +510,47 @@ export class IAService {
             }
             return best;
         }
+    }
+
+    performAlgo() {
+        this.cluster = require('cluster');
+        let noeud = this.getGraph()[0];
+        let father = null;
+        let alpha = { value : this.INFINITY * -1};
+        let beta = { value : this.INFINITY };
+        if (noeud.leaf == null) {
+            if (father != null) {
+                father.value = noeud.value;
+                return father;
+            }
+            return noeud;
+        } else {
+            let best = { value :  this.INFINITY * -1};
+
+            for (let child of noeud.leaf) {
+                if (this.cluster.isMaster) {
+                    this.cluster.fork();
+                } else {
+
+                    let val = this._negamaxAplhaBeta(child,-beta,-alpha, noeud);
+                    val.value = val.value  * -1;
+                    if (val.value > best.value) {
+                        best = val;
+                        if (best.value > alpha.value) {
+                            alpha = best;
+                            if (alpha.value >= beta.value) {
+                                if (father != null) {
+                                    father.value = best.value;
+                                    return father;
+                                }
+                                return best;
+                            }
+                        }
+                    }
+                }
+            }
+            return best;
+        }
+
     }
 }

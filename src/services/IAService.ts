@@ -143,7 +143,7 @@ export class IAService {
                 // score += 1 pour la promotion du pion en reine
                 boardNext[i + k][j + 1] = piece;
                 boardNext[i][j] = 0;
-                this.addBoard(boardNext);
+                this.addBoard(boardNext, false);
                 boardNext = this.copy(board);
             }
 
@@ -153,7 +153,7 @@ export class IAService {
                 // score += 1 pour la promotion du pion en reine
                 boardNext[i + k][j - 1] = piece;
                 boardNext[i][j] = 0;
-                this.addBoard(boardNext);
+                this.addBoard(boardNext, false);
             }
         } else if ((this.color == 1 && piece == 2) || (this.color == 3 && piece == 4)) {
 
@@ -206,7 +206,6 @@ export class IAService {
 
         let piece = boardNext[i][j];
         if ( next > -1 || next2 > -1) {
-
             // right direction
             if (next > -1 && (next == this.color-(k*2) || next == this.color-(k*2-1)) && (((k == 1 && i+(k*2) < 10) || (k == -1 && i+(k*2) >= 0)) && j+2 < 10) ) {
                 if (boardNext[i + (k*2)][j+2] == 0) {
@@ -216,11 +215,11 @@ export class IAService {
                     boardNext[i + k][j + 1] = 0;
 
                     if(!this.attack(boardNext, i + (k*2), j + 2, direction)) {
-                        this.addBoard(boardNext);
+                        this.attackRequired = true;
+                        this.addBoard(boardNext, true);
                     }
                     boardNext = this.copy(board);
                     whenAttack = true;
-                    this.attackRequired = true;
                 }
             }
 
@@ -233,10 +232,10 @@ export class IAService {
                     boardNext[i + k][j - 1] = 0;
 
                     if(!this.attack(boardNext, i + (k*2), j - 2, direction)) {
-                        this.addBoard(boardNext);
+                        this.attackRequired = true;
+                        this.addBoard(boardNext, true);
                     }
                     whenAttack = true;
-                    this.attackRequired = true;
                 }
             }
 
@@ -258,8 +257,8 @@ export class IAService {
             if (next == 0) {
                 boardNext[i + 1][j + 1] = piece;
                 boardNext[i][j] = 0;
-                this.addBoard(boardNext);
-                this.queenMove(boardNext, i+1, j+1, "RT");
+                this.addBoard(boardNext, false);
+                this.queenMove(boardNext, i + 1, j + 1, "RT");
                 boardNext = this.copy(board);
             }
         }
@@ -271,8 +270,8 @@ export class IAService {
             if (next == 0) {
                 boardNext[i + 1][j - 1] = piece;
                 boardNext[i][j] = 0;
-                this.addBoard(boardNext);
-                this.queenMove(boardNext, i+1, j-1, "LT");
+                this.addBoard(boardNext, false);
+                this.queenMove(boardNext, i + 1, j - 1, "LT");
                 boardNext = this.copy(board);
             }
         }
@@ -284,8 +283,8 @@ export class IAService {
             if (next == 0) {
                 boardNext[i - 1][j + 1] = piece;
                 boardNext[i][j] = 0;
-                this.addBoard(boardNext);
-                this.queenMove(boardNext, i-1, j+1, "RB");
+                this.addBoard(boardNext, false);
+                this.queenMove(boardNext, i - 1, j + 1, "RB");
                 boardNext = this.copy(board);
             }
         }
@@ -297,8 +296,8 @@ export class IAService {
             if (next == 0) {
                 boardNext[i - 1][j - 1] = piece;
                 boardNext[i][j] = 0;
-                this.addBoard(boardNext);
-                this.queenMove(boardNext, i-1, j-1, "LB");
+                this.addBoard(boardNext, false);
+                this.queenMove(boardNext, i - 1, j - 1, "LB");
             }
         }
     }
@@ -318,12 +317,13 @@ export class IAService {
                 boardNext[i + 2][j + 2] = piece;
                 boardNext[i+1][j+1] = 0;
                 boardNext[i][j] = 0;
+
                 if(!this.attackQueen(boardNext, i+2, j+2)) {
-                    this.addBoard(boardNext);
+                    this.attackRequired = true;
+                    this.addBoard(boardNext, true);
                 }
                 boardNext = this.copy(board);
                 whenAttack = true;
-                this.attackRequired = true;
             }
         }
 
@@ -337,12 +337,13 @@ export class IAService {
                 boardNext[i + 2][j - 2] = piece;
                 boardNext[i+1][j-1] = 0;
                 boardNext[i][j] = 0;
+
                 if(!this.attackQueen(boardNext, i+2, j-2)) {
-                    this.addBoard(boardNext);
+                    this.attackRequired = true;
+                    this.addBoard(boardNext, true);
                 }
                 boardNext = this.copy(board);
                 whenAttack = true;
-                this.attackRequired = true;
             }
         }
 
@@ -357,12 +358,13 @@ export class IAService {
                 boardNext[i - 2][j + 2] = piece;
                 boardNext[i-1][j+1] = 0;
                 boardNext[i][j] = 0;
+
                 if(!this.attackQueen(boardNext, i-2, j+2)) {
-                    this.addBoard(boardNext);
+                    this.attackRequired = true;
+                    this.addBoard(boardNext, true);
                 }
                 boardNext = this.copy(board);
                 whenAttack = true;
-                this.attackRequired = true;
             }
         }
 
@@ -376,11 +378,12 @@ export class IAService {
                 boardNext[i - 2][j - 2] = piece;
                 boardNext[i-1][j-1] = 0;
                 boardNext[i][j] = 0;
+
                 if(!this.attackQueen(boardNext, i-2, j-2)) {
-                    this.addBoard(boardNext);
+                    this.attackRequired = true;
+                    this.addBoard(boardNext, true);
                 }
                 whenAttack = true;
-                this.attackRequired = true;
             }
         }
 
@@ -389,13 +392,13 @@ export class IAService {
     }
 
     // method to push a board in graph
-    addBoard(board: [[number]]) {
+    addBoard(board: [[number]], attack:boolean) {
         if (this.debug) console.log(board);
 
         /**
          * Profondeur du graphe : nbDepth
          * TODO : BUG lors de graphe avec une profondeur > 1
-          */
+         */
         let nbDepth = 0;
         if (this.depth < nbDepth) {
             let iaService = null;
@@ -408,9 +411,9 @@ export class IAService {
             iaService.setBoard(board);
             iaService.buildGraph();
 
-            this.graph.push({score: this.score(board), board: board, leaf: iaService.getGraph()});
+            this.graph.push({score: this.score(board), board: board, leaf: iaService.getGraph(), attack: attack});
         }
-        this.graph.push({score: this.score(board), board: board, leaf: null});
+        this.graph.push({score: this.score(board), board: board, leaf: null, attack: attack});
     }
 
     /**
@@ -509,6 +512,12 @@ export class IAService {
         if (isUndefined(this.graph[0])) {
             return this.board;
         }
+
+        if (this.attackRequired == true) {
+            this.boardOnlyAttacks();
+        }
+
+        console.log("NB DECISIONS: "+this.graph.length);
         return this.performAlgo()['board'];
 
         // méthode classique avec le meilleur score (MAX)
@@ -518,6 +527,10 @@ export class IAService {
          }
          return board;
          }, 0);*/
+    }
+
+    boardOnlyAttacks() {
+        this.graph = this.graph.filter(item => item['attack'] === true);
     }
 
 // clone value of object without references

@@ -21,22 +21,22 @@ export class BoardRouter {
 
   // Test function : Local Battle
   getAll(req: Request, res: Response) {
-    let iaService = new IAService(1, false);
-    let iaService2 = new IAService(3, false);
+    let iaService = new IAService(1, 0, false);
+    let iaService2 = new IAService(3, 0, false);
 
     let board = iaService.getBoard();
 
     while(iaService.getNbPiece(board) > 0 && iaService2.getNbPiece(board) > 0) {
       iaService.setBoard(board);
       iaService.buildGraph();
-      board = iaService.takeAdecision()['board'];
+      board = iaService.takeAdecision();
 
       console.log("WHITE TURN");
       console.log(board);
 
       iaService2.setBoard(board);
       iaService2.buildGraph();
-      board = iaService2.takeAdecision()['board'];
+      board = iaService2.takeAdecision();
 
       console.log("BLACK TURN");
       console.log(board);

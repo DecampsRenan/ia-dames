@@ -52,3 +52,64 @@ $ gulp watch
 $ gulp typescript:compile
 ```
 
+### La plateforme
+
+Nous nous sommes chargé de développer le greffon permettant la communication avec la plateforme.
+De plus un autre membre a aider au développement de la plateforme.
+
+### L'heuristique
+
+Pour calculer l'heuristique nous nous sommes basés sur plusieurs critères. Premièrement le type de la pièce, si c'est un simple pion
+ou bien une dame. Une dame augmente de un le score par rapport à un pion. Ensuite est-ce que cette pièce est
+prenable par l'advesaire ou pas, si oui le score augmente de un. Puis on augmente l'heuristique de un pour chaque pièce
+adverse que l'on peut prendre avec notre pièce. Et pour finir si la pièce peut devenir une dame le score augmente aussi de un. Une fois
+notre heuristique calculé il faut maintenant s'intéresser à l'algorithme.
+
+
+### Algorithme
+
+L'Algorithme implémenté est négamax dans sa version alpha beta.
+Au départ pour chaque fils de la racine un thread est créé afin de réduire
+le temps d'execution de l'algorithme et de rendre le traitement de chaque noeud parallèle.
+
+Au lieu de simplement retourner l'heuristique de la feuille, l'algorithme retourne aussi le fils direct
+de la racine amenant à cette feuille. On a donc le prochain coup à jouer.
+
+Pour rappel, pour négamax dans sa version alpha-bêta, alpha est initialisé à moins l'infini et bêta est
+initialisé à plus l'infini. 
+
+On parcours l'arbre en largeur, c'est à dire que l'on commence toujours par le 
+fils le plus à gauche jusqu'à arriver à une feuille où là on remonte pour passer à l'autre fils et ainsi de suite.
+Lorsque l'on parcours les fils dans le sens de la descente alpha prend l'inverse de la valeur de bêta, et bêta l'inverse de la valeur
+de alpha. 
+
+Lorsque l'on remonte, si alpha est inférieur à l'inverse de la valeur remontée alors alpha prend cette valeur.
+Si alpha est supérieur à bêta on élague les fréres du noeud actuel et on ignore les valeurs récupérées au parcours du noeud actuel.
+
+L'algorithme se termine lorsque le parcours de l'arbre est terminé et que la valeur de alpha est rémonté jusqu'à la racine.
+
+Voici ci-dessous l'algorithme implémenté en pseudo code :
+
+```
+fonction ALPHABETA(P, A, B) /* A < B */
+   si P est une feuille alors
+       retourner la valeur de P
+   sinon
+       Meilleur = –INFINI
+       pour tout enfant Pi de P faire
+           Val = -ALPHABETA(Pi,-B,-A)
+           si Val > Meilleur alors
+               Meilleur = Val
+               si Meilleur > A alors
+                   A = Meilleur
+                   si A ≥ B alors
+                       retourner Meilleur
+                   finsi
+               finsi
+           finsi 
+       finpour 
+       retourner Meilleur
+   finsi
+fin
+
+```
